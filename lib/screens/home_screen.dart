@@ -24,6 +24,17 @@ class _HomeScreenState extends State<HomeScreen> {
   String carrier = "";
   int currentStep = 0;
   int totalSteps = 10;
+  int index1 = 0;
+  int index2 = 0;
+
+  Color c1 = Color(0xFF33658A);
+  Color c2 = Color(0xFFD90368);
+  Color resultColor = Colors.orange[800];
+  Widget explanationWidget = Container();
+  final styleText = TextStyle(
+    fontSize: 23,
+    color: Colors.black,
+  );
 
   @override
   void initState() {
@@ -107,10 +118,7 @@ class _HomeScreenState extends State<HomeScreen> {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
         children: <Widget>[
-          Text(
-            explanation,
-            style: textStyle,
-          ),
+          explanationWidget,
           Text(
             carrier,
             style: textStyle,
@@ -182,13 +190,14 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget _solution() {
     if (!isSolve) return Container();
     List<Widget> numbersDisplay = [];
+
     if (number1.length >= number2.length) {
-      numbersDisplay.add(_line(number1));
-      numbersDisplay.add(_line("x " + number2));
+      numbersDisplay.add(_line(number1, typeIndex: 1));
+      numbersDisplay.add(_line("x " + number2, typeIndex: 2));
       numbersDisplay.add(_oneLine(number1.length));
     } else {
-      numbersDisplay.add(_line(number2));
-      numbersDisplay.add(_line("x " + number1));
+      numbersDisplay.add(_line(number2, typeIndex: 2));
+      numbersDisplay.add(_line("x " + number1, typeIndex: 1));
       numbersDisplay.add(_oneLine(number2.length));
     }
     String finalResult = (int.parse(number1) * int.parse(number2)).toString();
@@ -247,24 +256,44 @@ class _HomeScreenState extends State<HomeScreen> {
     return result;
   }
 
-  Widget _lineItem(String char, {bool isResult = false}) {
+  Widget _lineItem(String char, int index, int typeIndex, int size,
+      {bool isResult = false}) {
+    bool isBolded = false;
+    Color c = Colors.white;
+    if (typeIndex != null) {
+      if (typeIndex == 1 && (size - 1 - index) == index1) {
+        c = c1;
+        isBolded = true;
+      } else if (typeIndex == 2 && (size - 1 - index) == index2) {
+        isBolded = true;
+        c = c2;
+      }
+    }
     return Container(
       width: 35.0,
       child: Text(
         char,
         style: TextStyle(
-          color: Colors.white,
-          fontSize: 46.0,
-          fontWeight: isResult ? FontWeight.bold : FontWeight.normal,
+          color: c,
+          fontSize: isBolded ? 50.0 : 46.0,
+          fontWeight: isResult
+              ? FontWeight.bold
+              : isBolded ? FontWeight.bold : FontWeight.normal,
         ),
       ),
     );
   }
 
-  Widget _line(String text, {bool isResult = false}) {
+  Widget _line(String text, {bool isResult = false, int typeIndex}) {
     List<Widget> _items = [];
     for (int i = 0; i < text.length; i++) {
-      _items.add(_lineItem(text[i], isResult: isResult));
+      _items.add(_lineItem(
+        text[i],
+        i,
+        typeIndex,
+        text.length,
+        isResult: isResult,
+      ));
     }
 
     return Row(
@@ -322,27 +351,53 @@ class _HomeScreenState extends State<HomeScreen> {
 
     print("------------------------");
     int currentStepFunction = 0;
+    index1 = 0;
+    index2 = 0;
+    explanationWidget = Container();
     for (int i = 0; i < n1.length; i++) {
       String x1 = n1[i];
       String resultLine = "";
+      index2 = i;
       for (int j = 0; j < n2.length; j++) {
+        index2 = j;
         String x2 = n2[j];
         val1 = int.parse(x1);
         val2 = int.parse(x2);
         result = val1 * val2;
         explanation = "Multiplicar $x1 x $x2 = $result";
+        List<Widget> items = [
+          Text("Multiplicar ", style: styleText),
+          Text("$x1",
+              style:
+                  styleText.copyWith(color: c1, fontWeight: FontWeight.bold)),
+          Text(" x ", style: styleText),
+          Text("$x2",
+              style:
+                  styleText.copyWith(color: c2, fontWeight: FontWeight.bold)),
+          Text(" = ", style: styleText)
+        ];
         if (aux != 0) {
+          items.add(Text("$result; $result + $aux = ", style: styleText));
           result = result + aux;
           //print("Llevabas $aux, result: $result");
         }
         if (result > 10 && j != n2.length - 1) {
           aux = (result / 10).floor();
           //print("se lleva $aux");
+          items.add(Text("$aux", style: styleText));
           result = result % 10;
         } else {
           aux = 0;
         }
 
+        explanationWidget = Row(
+          children: [
+            ...items,
+            Text("$result",
+                style: styleText.copyWith(
+                    color: resultColor, fontWeight: FontWeight.bold)),
+          ],
+        );
         resultLine = "$result" + resultLine;
 
         print("C $currentStep == $currentStepFunction");
