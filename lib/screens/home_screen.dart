@@ -21,14 +21,19 @@ class _HomeScreenState extends State<HomeScreen> {
   TextEditingController _c2 = TextEditingController();
   bool showStepByStep = false;
   String explanation = "";
-  String carrier = "";
+  int carrier = 0;
   int currentStep = 0;
   int totalSteps = 10;
   int index1 = 0;
   int index2 = 0;
+  int indexRes = 0;
+  int indexRow = 0;
+  int indexRowChar = 0;
 
   Color c1 = Color(0xFF33658A);
   Color c2 = Color(0xFFD90368);
+  Color c3 = Colors.orange;
+  Color colorCarrier = Color(0xFF291720);
   Color resultColor = Colors.orange[800];
   Widget explanationWidget = Container();
   final styleText = TextStyle(
@@ -109,20 +114,39 @@ class _HomeScreenState extends State<HomeScreen> {
     );
     return Container(
       margin: EdgeInsets.only(bottom: 10.0),
-      height: 60.0,
+      height: 80.0,
+      padding: EdgeInsets.symmetric(vertical: 10.0, horizontal: 10.0),
       width: _size.width * 0.8,
       decoration: BoxDecoration(
         color: Colors.green[300],
         borderRadius: BorderRadius.circular(10.0),
       ),
-      child: Row(
+      child: Column(
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+        crossAxisAlignment: CrossAxisAlignment.center,
         children: <Widget>[
           explanationWidget,
-          Text(
-            carrier,
-            style: textStyle,
-          ),
+          carrier == 0
+              ? Container()
+              : Container(
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text(
+                        "y llevamos: ",
+                        style: textStyle,
+                      ),
+                      Text(
+                        "$carrier",
+                        style: textStyle.copyWith(
+                          color: colorCarrier,
+                          fontSize: 20.0,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      )
+                    ],
+                  ),
+                ),
         ],
       ),
     );
@@ -248,25 +272,45 @@ class _HomeScreenState extends State<HomeScreen> {
       if (i == listResultMultiplications.length - 1 &&
           listResultMultiplications.length > 1) {
         sizeOfLastMultiplication = m.length;
-        result.add(_line("+" + addSpaces(m, i)));
+        result.add(_line(
+          "+" + addSpaces(m, i),
+          typeIndex: 3,
+          indexRow: i,
+          over: i,
+        ));
       } else {
-        result.add(_line(addSpaces(m, i)));
+        result.add(
+          _line(
+            addSpaces(
+              m,
+              i,
+            ),
+            typeIndex: 3,
+            indexRow: i,
+            over: i,
+          ),
+        );
       }
     }
     return result;
   }
 
   Widget _lineItem(String char, int index, int typeIndex, int size,
-      {bool isResult = false}) {
+      {bool isResult = false, int indexRow = -1}) {
     bool isBolded = false;
     Color c = Colors.white;
     if (typeIndex != null) {
+      isBolded = true;
       if (typeIndex == 1 && (size - 1 - index) == index1) {
         c = c1;
-        isBolded = true;
       } else if (typeIndex == 2 && (size - 1 - index) == index2) {
-        isBolded = true;
         c = c2;
+      } else if (typeIndex == 3) {
+        if (listResultMultiplications.length - 1 == index1 &&
+            indexRow == index1 &&
+            (size - 1 - index) == indexRowChar) {
+          c = c3;
+        }
       }
     }
     return Container(
@@ -284,15 +328,17 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget _line(String text, {bool isResult = false, int typeIndex}) {
+  Widget _line(String text,
+      {bool isResult = false, int typeIndex, int indexRow = -1, int over = 0}) {
     List<Widget> _items = [];
     for (int i = 0; i < text.length; i++) {
       _items.add(_lineItem(
         text[i],
-        i,
+        i + over,
         typeIndex,
         text.length,
         isResult: isResult,
+        indexRow: indexRow,
       ));
     }
 
@@ -333,6 +379,7 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   List<String> getMultiplications(String n1x, String n2x) {
+    carrier = 0;
     List<String> steps = [];
     List<String> n1;
     List<String> n2;
@@ -347,22 +394,25 @@ class _HomeScreenState extends State<HomeScreen> {
     int val1;
     int val2;
     int result;
-    int aux = 0;
 
     print("------------------------");
     int currentStepFunction = 0;
     index1 = 0;
     index2 = 0;
+    indexRow = 0;
     explanationWidget = Container();
+
     for (int i = 0; i < n1.length; i++) {
       String x1 = n1[i];
       String resultLine = "";
-      index2 = i;
+      index1 = i;
       for (int j = 0; j < n2.length; j++) {
         index2 = j;
+
         String x2 = n2[j];
         val1 = int.parse(x1);
         val2 = int.parse(x2);
+
         result = val1 * val2;
         explanation = "Multiplicar $x1 x $x2 = $result";
         List<Widget> items = [
@@ -370,27 +420,32 @@ class _HomeScreenState extends State<HomeScreen> {
           Text("$x1",
               style:
                   styleText.copyWith(color: c1, fontWeight: FontWeight.bold)),
-          Text(" x ", style: styleText),
+          Text(" x ", style: styleText.copyWith(fontWeight: FontWeight.bold)),
           Text("$x2",
               style:
                   styleText.copyWith(color: c2, fontWeight: FontWeight.bold)),
           Text(" = ", style: styleText)
         ];
-        if (aux != 0) {
-          items.add(Text("$result; $result + $aux = ", style: styleText));
-          result = result + aux;
-          //print("Llevabas $aux, result: $result");
+        if (carrier != 0) {
+          items.add(Text("$result; $result + $carrier = ", style: styleText));
+          result = result + carrier;
+          //print("Llevabas $carrier, result: $result");
         }
-        if (result > 10 && j != n2.length - 1) {
-          aux = (result / 10).floor();
-          //print("se lleva $aux");
-          items.add(Text("$aux", style: styleText));
+        if (result >= 10 && j != n2.length - 1) {
+          carrier = (result / 10).floor();
+          //print("se lleva $carrier");
+          items.add(Text("$carrier",
+              style: styleText.copyWith(
+                color: colorCarrier,
+                fontWeight: FontWeight.bold,
+              )));
           result = result % 10;
         } else {
-          aux = 0;
+          carrier = 0;
         }
 
         explanationWidget = Row(
+          mainAxisAlignment: MainAxisAlignment.center,
           children: [
             ...items,
             Text("$result",
@@ -400,7 +455,7 @@ class _HomeScreenState extends State<HomeScreen> {
         );
         resultLine = "$result" + resultLine;
 
-        print("C $currentStep == $currentStepFunction");
+        ///print("C $currentStep == $currentStepFunction");
         if (currentStep == currentStepFunction) {
           break;
         } else {
@@ -409,6 +464,8 @@ class _HomeScreenState extends State<HomeScreen> {
       }
 
       steps.add(resultLine);
+
+      indexRowChar = resultLine.length - 1;
       if (currentStep == currentStepFunction) {
         break;
       }
@@ -438,6 +495,7 @@ class _HomeScreenState extends State<HomeScreen> {
           FlatButton(
             color: Colors.orange[600],
             onPressed: () {
+              totalSteps = (number1.length * number2.length) - 1;
               solve();
             },
             child: Text(
