@@ -22,6 +22,7 @@ class _HomeScreenState extends State<HomeScreen> {
   bool showStepByStep = false;
   String explanation = "";
   int carrier = 0;
+  int lastCarrier;
   int currentStep = 0;
   int totalSteps = 10;
   int index1 = 0;
@@ -29,6 +30,7 @@ class _HomeScreenState extends State<HomeScreen> {
   int indexRes = 0;
   int indexRow = 0;
   int indexRowChar = 0;
+  int result = 0;
 
   Color c1 = Color(0xFF33658A);
   Color c2 = Color(0xFFD90368);
@@ -112,7 +114,7 @@ class _HomeScreenState extends State<HomeScreen> {
       color: Colors.black,
       fontSize: 17.0,
     );
-    return Container(
+    var container = Container(
       margin: EdgeInsets.only(bottom: 10.0),
       height: 80.0,
       padding: EdgeInsets.symmetric(vertical: 10.0, horizontal: 10.0),
@@ -133,7 +135,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       Text(
-                        "y llevamos: ",
+                        "Se acarrea el ",
                         style: textStyle,
                       ),
                       Text(
@@ -143,12 +145,49 @@ class _HomeScreenState extends State<HomeScreen> {
                           fontSize: 20.0,
                           fontWeight: FontWeight.bold,
                         ),
+                      ),
+                      Text(" y se pone el ", style: textStyle),
+                      Text(
+                        "$result",
+                        style: textStyle.copyWith(
+                            color: resultColor, fontWeight: FontWeight.bold),
                       )
                     ],
                   ),
                 ),
         ],
       ),
+    );
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.center,
+      children: [
+        lastCarrier != null && lastCarrier != 0
+            ? Container(
+                width: _size.width < 400 ? _size.width * 0.4 : 200.0,
+                height: 50.0,
+                decoration: BoxDecoration(
+                  color: Colors.green[400],
+                  borderRadius: BorderRadius.circular(5.0),
+                ),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text("Acarreo"),
+                    Text(
+                      lastCarrier.toString(),
+                      style: textStyle.copyWith(
+                        fontSize: 20.0,
+                        color: colorCarrier,
+                        fontWeight: FontWeight.bold,
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                  ],
+                ),
+              )
+            : Container(),
+        container,
+      ],
     );
   }
 
@@ -432,6 +471,7 @@ class _HomeScreenState extends State<HomeScreen> {
           //print("Llevabas $carrier, result: $result");
         }
         if (result >= 10 && j != n2.length - 1) {
+          lastCarrier = carrier;
           carrier = (result / 10).floor();
           //print("se lleva $carrier");
           items.add(Text("$carrier",
@@ -454,6 +494,7 @@ class _HomeScreenState extends State<HomeScreen> {
           ],
         );
         resultLine = "$result" + resultLine;
+        this.result = result;
 
         ///print("C $currentStep == $currentStepFunction");
         if (currentStep == currentStepFunction) {
