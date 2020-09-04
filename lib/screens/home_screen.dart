@@ -31,6 +31,7 @@ class _HomeScreenState extends State<HomeScreen> {
   int indexRow = 0;
   int indexRowChar = 0;
   int result = 0;
+  bool isLastWith2Digits = false;
 
   Color c1 = Color(0xFF33658A);
   Color c2 = Color(0xFFD90368);
@@ -75,7 +76,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   _topInput(),
                   _buttonContainer(),
                   _solution(),
-                  SizedBox(height: 60.0),
+                  SizedBox(height: _size.height * 0.5),
                 ],
               ),
             ),
@@ -120,7 +121,7 @@ class _HomeScreenState extends State<HomeScreen> {
       padding: EdgeInsets.symmetric(vertical: 10.0, horizontal: 10.0),
       width: _size.width * 0.8,
       decoration: BoxDecoration(
-        color: Colors.green[300],
+        color: Colors.green[300].withOpacity(0.4),
         borderRadius: BorderRadius.circular(10.0),
       ),
       child: Column(
@@ -166,7 +167,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 width: _size.width < 400 ? _size.width * 0.4 : 200.0,
                 height: 50.0,
                 decoration: BoxDecoration(
-                  color: Colors.green[400],
+                  color: Colors.green[400].withOpacity(0.4),
                   borderRadius: BorderRadius.circular(5.0),
                 ),
                 child: Column(
@@ -350,6 +351,14 @@ class _HomeScreenState extends State<HomeScreen> {
             (size - 1 - index) == indexRowChar) {
           c = c3;
         }
+        if (isLastWith2Digits) {
+          print("$isLastWith2Digits == val, char = $char");
+          if (listResultMultiplications.length - 1 == index1 &&
+              indexRow == index1 &&
+              (size - index) == indexRowChar) {
+            c = c3;
+          }
+        }
       }
     }
     return Container(
@@ -419,6 +428,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   List<String> getMultiplications(String n1x, String n2x) {
     carrier = 0;
+    isLastWith2Digits = false;
     List<String> steps = [];
     List<String> n1;
     List<String> n2;
@@ -445,7 +455,9 @@ class _HomeScreenState extends State<HomeScreen> {
       String x1 = n1[i];
       String resultLine = "";
       index1 = i;
+
       for (int j = 0; j < n2.length; j++) {
+        lastCarrier = 0;
         index2 = j;
 
         String x2 = n2[j];
@@ -467,11 +479,11 @@ class _HomeScreenState extends State<HomeScreen> {
         ];
         if (carrier != 0) {
           items.add(Text("$result; $result + $carrier = ", style: styleText));
+          lastCarrier = carrier;
           result = result + carrier;
           //print("Llevabas $carrier, result: $result");
         }
         if (result >= 10 && j != n2.length - 1) {
-          lastCarrier = carrier;
           carrier = (result / 10).floor();
           //print("se lleva $carrier");
           items.add(Text("$carrier",
@@ -480,6 +492,10 @@ class _HomeScreenState extends State<HomeScreen> {
                 fontWeight: FontWeight.bold,
               )));
           result = result % 10;
+        } else if (result >= 10) {
+          carrier = 0;
+          lastCarrier = 0;
+          isLastWith2Digits = true;
         } else {
           carrier = 0;
         }
