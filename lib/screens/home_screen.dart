@@ -11,6 +11,8 @@ class _HomeScreenState extends State<HomeScreen> {
   int sizeOfNumbers = 2;
   String number1 = "0";
   String number2 = "0";
+  String number1Aux = "0";
+  String number2Aux = "0";
   List<double> numbers = [];
   String msg1 = "¿Cuántos números vas a multiplicar";
   Size _size;
@@ -24,7 +26,8 @@ class _HomeScreenState extends State<HomeScreen> {
   int carrier = 0;
   int lastCarrier;
   int currentStep = 0;
-  int totalSteps = 10;
+  int totalSteps = 0;
+  int totalStepsMult = 0;
   int index1 = 0;
   int index2 = 0;
   int indexRes = 0;
@@ -38,7 +41,7 @@ class _HomeScreenState extends State<HomeScreen> {
   Color c3 = Colors.orange;
   Color colorCarrier = Color(0xFF291720);
   Color resultColor = Colors.orange[800];
-  Widget explanationWidget = Container();
+  Widget explanationWidget = null;
   final styleText = TextStyle(
     fontSize: 23,
     color: Colors.black,
@@ -84,7 +87,7 @@ class _HomeScreenState extends State<HomeScreen> {
           Container(
             height: _size.height,
           ),
-          _controlsStepByStep(),
+          explanationWidget != null ? _controlsStepByStep() : Container(),
         ],
       ),
     );
@@ -110,14 +113,14 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Widget _explanation() {
-    if (explanation.length == 0) return Container();
+    if (explanationWidget == null) return Container();
     var textStyle = TextStyle(
       color: Colors.black,
-      fontSize: 17.0,
+      fontSize: 19.0,
     );
     var container = Container(
       margin: EdgeInsets.only(bottom: 10.0),
-      height: 80.0,
+      height: 120.0,
       padding: EdgeInsets.symmetric(vertical: 10.0, horizontal: 10.0),
       width: _size.width * 0.8,
       decoration: BoxDecoration(
@@ -195,7 +198,7 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget _controlLabel() {
     return Container(
       child: Text(
-        "$currentStep/$totalSteps",
+        "${currentStep + 1}/${totalSteps + 1}",
         style: TextStyle(
           color: Colors.white,
           fontWeight: FontWeight.bold,
@@ -206,7 +209,7 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Widget _controlsStepByStep() {
-    if (!showStepByStep) Container();
+    //if (!showStepByStep) Container();
     return Positioned(
       child: Container(
         width: _size.width,
@@ -253,17 +256,12 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Widget _solution() {
     if (!isSolve) return Container();
+
     List<Widget> numbersDisplay = [];
 
-    if (number1.length >= number2.length) {
-      numbersDisplay.add(_line(number1, typeIndex: 1));
-      numbersDisplay.add(_line("x " + number2, typeIndex: 2));
-      numbersDisplay.add(_oneLine(number1.length));
-    } else {
-      numbersDisplay.add(_line(number2, typeIndex: 2));
-      numbersDisplay.add(_line("x " + number1, typeIndex: 1));
-      numbersDisplay.add(_oneLine(number2.length));
-    }
+    numbersDisplay.add(_line(number2, typeIndex: 2));
+    numbersDisplay.add(_line("x " + number1, typeIndex: 1));
+    numbersDisplay.add(_oneLine(number2.length));
     String finalResult = (int.parse(number1) * int.parse(number2)).toString();
     return Container(
       width: _size.width * 0.8,
@@ -310,7 +308,8 @@ class _HomeScreenState extends State<HomeScreen> {
       String m = listResultMultiplications[i];
 
       if (i == listResultMultiplications.length - 1 &&
-          listResultMultiplications.length > 1) {
+          listResultMultiplications.length > 1 &&
+          currentStep >= (totalStepsMult - 1)) {
         sizeOfLastMultiplication = m.length;
         result.add(_line(
           "+" + addSpaces(m, i),
@@ -352,7 +351,6 @@ class _HomeScreenState extends State<HomeScreen> {
           c = c3;
         }
         if (isLastWith2Digits) {
-          print("$isLastWith2Digits == val, char = $char");
           if (listResultMultiplications.length - 1 == index1 &&
               indexRow == index1 &&
               (size - index) == indexRowChar) {
@@ -432,13 +430,8 @@ class _HomeScreenState extends State<HomeScreen> {
     List<String> steps = [];
     List<String> n1;
     List<String> n2;
-    if (n1x.length < n2x.length) {
-      n1 = n1x.split('').reversed.toList();
-      n2 = n2x.split('').reversed.toList();
-    } else {
-      n2 = n1x.split('').reversed.toList();
-      n1 = n2x.split('').reversed.toList();
-    }
+    n2 = n2x.split('').reversed.toList();
+    n1 = n1x.split('').reversed.toList();
 
     int val1;
     int val2;
@@ -450,14 +443,17 @@ class _HomeScreenState extends State<HomeScreen> {
     index2 = 0;
     indexRow = 0;
     explanationWidget = Container();
-
+    bool isDouble = false;
+    List<Widget> aux = [];
     for (int i = 0; i < n1.length; i++) {
       String x1 = n1[i];
       String resultLine = "";
       index1 = i;
 
       for (int j = 0; j < n2.length; j++) {
+        print("${n1[i]}x${n2[j]}, $currentStep, $currentStepFunction");
         lastCarrier = 0;
+        isLastWith2Digits = false;
         index2 = j;
 
         String x2 = n2[j];
@@ -465,7 +461,6 @@ class _HomeScreenState extends State<HomeScreen> {
         val2 = int.parse(x2);
 
         result = val1 * val2;
-        explanation = "Multiplicar $x1 x $x2 = $result";
         List<Widget> items = [
           Text("Multiplicar ", style: styleText),
           Text("$x1",
@@ -478,19 +473,28 @@ class _HomeScreenState extends State<HomeScreen> {
           Text(" = ", style: styleText)
         ];
         if (carrier != 0) {
-          items.add(Text("$result; $result + $carrier = ", style: styleText));
+          isDouble = true;
+          //items.add(Text("$result", style: styleText));
           lastCarrier = carrier;
+          aux = [];
+
+          items.add(Text("$result", style: styleText));
+          aux.add(Text("Se suma el acarreo: $result + $carrier = ",
+              style: styleText));
+
           result = result + carrier;
+
           //print("Llevabas $carrier, result: $result");
         }
         if (result >= 10 && j != n2.length - 1) {
           carrier = (result / 10).floor();
+
+          if (lastCarrier == 0) {
+            items.add(Text("$carrier",
+                style: styleText.copyWith(
+                    color: colorCarrier, fontWeight: FontWeight.bold)));
+          }
           //print("se lleva $carrier");
-          items.add(Text("$carrier",
-              style: styleText.copyWith(
-                color: colorCarrier,
-                fontWeight: FontWeight.bold,
-              )));
           result = result % 10;
         } else if (result >= 10) {
           carrier = 0;
@@ -499,24 +503,53 @@ class _HomeScreenState extends State<HomeScreen> {
         } else {
           carrier = 0;
         }
-
-        explanationWidget = Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            ...items,
-            Text("$result",
-                style: styleText.copyWith(
-                    color: resultColor, fontWeight: FontWeight.bold)),
-          ],
+        Widget resultWidget = Text(
+          "$result",
+          style: styleText.copyWith(
+              color: resultColor, fontWeight: FontWeight.bold),
         );
+        if (isDouble) {
+          if (carrier != 0) {
+            aux.add(Text("$carrier",
+                style: styleText.copyWith(fontWeight: FontWeight.bold)));
+          }
+          explanationWidget = Column(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [...items],
+              ),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  ...aux,
+                  resultWidget,
+                ],
+              )
+            ],
+          );
+        } else {
+          explanationWidget = Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              ...items,
+              Row(
+                children: [resultWidget],
+              ),
+            ],
+          );
+        }
+
         resultLine = "$result" + resultLine;
         this.result = result;
 
-        ///print("C $currentStep == $currentStepFunction");
         if (currentStep == currentStepFunction) {
           break;
         } else {
-          currentStepFunction++;
+          if (j < n2.length - 1) {
+            currentStepFunction++;
+          }
         }
       }
 
@@ -525,6 +558,8 @@ class _HomeScreenState extends State<HomeScreen> {
       indexRowChar = resultLine.length - 1;
       if (currentStep == currentStepFunction) {
         break;
+      } else {
+        currentStepFunction++;
       }
     }
 
@@ -552,7 +587,15 @@ class _HomeScreenState extends State<HomeScreen> {
           FlatButton(
             color: Colors.orange[600],
             onPressed: () {
+              if (number1Aux.length >= number2Aux.length) {
+                number2 = number1Aux;
+                number1 = number2Aux;
+              } else {
+                number1 = number1Aux;
+                number2 = number2Aux;
+              }
               totalSteps = (number1.length * number2.length) - 1;
+              totalStepsMult = totalSteps;
               solve();
             },
             child: Text(
@@ -582,10 +625,11 @@ class _HomeScreenState extends State<HomeScreen> {
           Container(
             width: _size.width * 0.4,
             child: _input("Número 1", (val) {
+              if (explanationWidget != null) explanationWidget = null;
               setState(
                 () {
                   isSolve = false;
-                  number1 = val;
+                  number1Aux = val;
                 },
               );
             }, _c1),
@@ -593,9 +637,10 @@ class _HomeScreenState extends State<HomeScreen> {
           Container(
             width: _size.width * 0.4,
             child: _input("Número 2", (val) {
+              if (explanationWidget != null) explanationWidget = null;
               setState(() {
                 isSolve = false;
-                number2 = val;
+                number2Aux = val;
               });
             }, _c2),
           )
